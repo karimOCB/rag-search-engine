@@ -3,6 +3,7 @@ import json, os
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 data_path = os.path.join(ROOT_DIR, "data", "movies.json")
 stop_words_path = os.path.join(ROOT_DIR, "data", "stopwords.txt")
+CACHE_DIR = os.path.join(ROOT_DIR, "cache")
 
 DEFAULT_SEARCH_LIMIT = 5
 
