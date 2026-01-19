@@ -6,6 +6,8 @@ class InvertedIndex:
     def __init__(self):
         self.index = {}
         self.docmap = {}
+        self.idx_path = os.path.join(CACHE_DIR, "index.pkl")
+        self.docmap_path = os.path.join(CACHE_DIR, "docmap.pkl")
 
     def __add_document(self, doc_id, text):
         tokens = tokenize_text(text)
@@ -33,9 +35,21 @@ class InvertedIndex:
         if not os.path.exists(CACHE_DIR):
             os.mkdir(CACHE_DIR)
         
-        with open(os.path.join(CACHE_DIR, "index.pkl"), "wb") as f:
+        with open(self.idx_path, "wb") as f:
             pickle.dump(self.index, f)
 
-        with open(os.path.join(CACHE_DIR, "docmap.pkl"), "wb") as f:
+        with open(self.docmap_path, "wb") as f:
             pickle.dump(self.docmap, f)
 
+    def load(self):
+        if not os.path.exists(self.idx_path):
+            raise FileNotFoundError(f"Error: '{self.idx_path}' needed to continue.")
+
+        if not os.path.exists(self.docmap_path):
+            raise FileNotFoundError(f"Error: '{self.docmap_path}' needed to continue.")
+
+        with open(self.idx_path, "rb") as f:
+            self.index = pickle.load(f)
+          
+        with open(self.docmap_path, "rb") as f:
+            self.docmap = pickle.load(f)
