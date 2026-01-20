@@ -1,4 +1,4 @@
-import string
+import string, math
 from nltk.stem import PorterStemmer
 from .search_utils import load_movies, load_stop_words, DEFAULT_SEARCH_LIMIT
 
@@ -54,3 +54,11 @@ def tokenize_text(text):
     stemmed_tokens = [stemmer.stem(token) for token in filtered_tokens]
     return stemmed_tokens
 
+def idf_command(inv_idx, term):
+        inv_idx.load()
+        movies = load_movies()
+        total_doc_count = len(movies)
+        term_match_doc_count = len(inv_idx.get_documents(term))
+        term_idf = math.log((total_doc_count + 1) / (term_match_doc_count + 1))
+        print(f"{term_idf}")
+        return term_idf

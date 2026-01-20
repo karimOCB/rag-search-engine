@@ -23,11 +23,11 @@ class InvertedIndex:
             self.term_frequencies[doc_id][token] += 1            
             
     def get_documents(self, term):
-        term = term.tokenize_text()
-        if term not in self.index:
+        term = tokenize_text(term)
+        if term[0] not in self.index:
             return []
 
-        doc_ids = sorted(self.index[term])
+        doc_ids = sorted(self.index[term[0]])
         return doc_ids
 
     def build(self):

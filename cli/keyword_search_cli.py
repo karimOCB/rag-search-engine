@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-from lib.keyword_search import keyword_search, build_command
+from lib.keyword_search import keyword_search, build_command, idf_command
 from lib.inverted_index import InvertedIndex
 
 def main() -> None:
@@ -15,6 +15,8 @@ def main() -> None:
     tf_parser = subparsers.add_parser("tf", help="Get term frequencies")
     tf_parser.add_argument("doc_id", type=int, help="Document ID")
     tf_parser.add_argument("term", type=str, help="Term to get frequency")
+    idf_parser = subparsers.add_parser("idf", help="Calculate IDF")
+    idf_parser.add_argument("term", type=str, help="Term to get the IDF")
 
     args = parser.parse_args()
 
@@ -26,7 +28,7 @@ def main() -> None:
             print("Inverted index built successfully.")
         case "search":
             print(f"Searching for: {args.query}")
-            inv_idx = InvertedIndex()uv run cli/keyword_search_cli.py tf 424 trapper
+            inv_idx = InvertedIndex()
 
             result = keyword_search(args.query, inv_idx)
             for i in range(len(result)):
@@ -36,6 +38,10 @@ def main() -> None:
             inv_idx.load()
             frequency = inv_idx.get_tf(args.doc_id, args.term)
             print(f"{frequency}")
+        case "idf":
+            inv_idx = InvertedIndex()
+            term_idf = idf_command(inv_idx, args.term)
+            print(f"Inverse document frequency of '{args.term}': {term_idf:.2f}")
         case _:
             parser.print_help()
 
