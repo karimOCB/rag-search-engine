@@ -24,10 +24,9 @@ def keyword_search(query, inv_idx):
                 break
     return result
 
-def build_command():
-    idx = InvertedIndex()
-    idx.build()
-    idx.save()
+def build_command(inv_idx):
+    inv_idx.build()
+    inv_idx.save()
 
 def has_matching_token(query_tokens, title_tokens):
     for query_token in query_tokens:
