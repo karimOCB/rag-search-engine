@@ -6,6 +6,7 @@ stop_words_path = os.path.join(ROOT_DIR, "data", "stopwords.txt")
 CACHE_DIR = os.path.join(ROOT_DIR, "cache")
 
 DEFAULT_SEARCH_LIMIT = 5
+BM25_K1 = 1.5
 
 def load_movies():
     with open(data_path, 'r') as f:

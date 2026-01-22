@@ -67,3 +67,8 @@ def bm25_idf_command(inv_idx, term):
     inv_idx.load()
     BM25_IDF = inv_idx.get_bm25_idf(term)    
     return BM25_IDF
+
+def bm25_tf_command(inv_idx, doc_id, term, k1=1.5):
+    inv_idx.load()
+    bm25_tf = inv_idx.get_bm25_tf(doc_id, term, k1)
+    return bm25_tf

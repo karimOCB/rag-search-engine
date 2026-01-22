@@ -77,6 +77,7 @@ class InvertedIndex:
         return self.term_frequencies[doc_id][term[0]]
 
     def get_bm25_idf(self, term):
+        term = tokenize_text(term)
         self.single_token(term)
         movies = load_movies()
         total_docs = len(movies)
@@ -90,4 +91,8 @@ class InvertedIndex:
                 raise Exception(f"Given term: {term} is more than one token!")
             if len(term) == 0:
                 raise Exception("Given term is empty!")
-        
+    
+    def get_bm25_tf(self, doc_id, term, k1):
+        raw_tf = self.get_tf(doc_id, term)
+        bm25_tf = (raw_tf * (k1 + 1)) / (raw_tf + k1)
+        return bm25_tf
