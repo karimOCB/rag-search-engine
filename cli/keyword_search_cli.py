@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-from lib.keyword_search import keyword_search, build_command, idf_command
+from lib.keyword_search import keyword_search, build_command, idf_command, bm25_idf_command
 from lib.inverted_index import InvertedIndex
 
 def main() -> None:
@@ -19,7 +19,9 @@ def main() -> None:
     idf_parser.add_argument("term", type=str, help="Term to get the IDF")
     tfidf_parser = subparsers.add_parser("tfidf", help="Calculate TF-IDF")
     tfidf_parser.add_argument("doc_id", type=int, help="Document ID to calculate the TF-IDF")    
-    tfidf_parser.add_argument("term", type=str, help="Term to calculate the TF-IDF")    
+    tfidf_parser.add_argument("term", type=str, help="Term to calculate the TF-IDF")
+    bm25_idf_parser = subparsers.add_parser("bm25idf", help="Get BM25 IDF score for a given term")
+    bm25_idf_parser.add_argument("term", type=str, help="Term to get BM25 IDF score for")   
 
     args = parser.parse_args()
 
@@ -53,6 +55,10 @@ def main() -> None:
             tf_idf = tf * idf
             print(f"{tf_idf}")
             print(f"TF-IDF score of '{args.term}' in document '{args.doc_id}': {tf_idf:.2f}")
+        case "bm25idf":
+            inv_idx = InvertedIndex()
+            BM25_IDF = bm25_idf_command(inv_idx, args.term)
+            print(f"BM25 IDF score of '{args.term}': {BM25_IDF:.2f}")
         case _:
             parser.print_help()
 

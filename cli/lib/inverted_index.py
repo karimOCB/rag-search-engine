@@ -1,4 +1,4 @@
-import pickle, os
+import pickle, os, math
 from .keyword_search import tokenize_text
 from .search_utils import load_movies, CACHE_DIR
 from collections import Counter
@@ -71,10 +71,23 @@ class InvertedIndex:
 
     def get_tf(self, doc_id, term):
         term = tokenize_text(term)
-        if len(term) > 1:
-            raise Exception("Given term is more than one token!")
-        if len(term) == 0:
-            raise Exception("Given term is empty!")
+        self.single_token(term)
         if doc_id not in self.term_frequencies:
             return 0
         return self.term_frequencies[doc_id][term[0]]
+
+    def get_bm25_idf(self, term):
+        self.single_token(term)
+        movies = load_movies()
+        total_docs = len(movies)
+        term_in_docs = len(self.get_documents(term))
+        BM25_IDF = math.log((total_docs - term_in_docs + 0.5) / (term_in_docs + 0.5) + 1)
+        return BM25_IDF
+
+    def single_token(self, term):
+        if isinstance(term, list):
+            if len(term) > 1:
+                raise Exception(f"Given term: {term} is more than one token!")
+            if len(term) == 0:
+                raise Exception("Given term is empty!")
+        

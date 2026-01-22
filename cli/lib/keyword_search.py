@@ -55,10 +55,15 @@ def tokenize_text(text):
     return stemmed_tokens
 
 def idf_command(inv_idx, term):
-        inv_idx.load()
-        movies = load_movies()
-        total_doc_count = len(movies)
-        term_match_doc_count = len(inv_idx.get_documents(term))
-        term_idf = math.log((total_doc_count + 1) / (term_match_doc_count + 1))
-        print(f"{term_idf}")
-        return term_idf
+    inv_idx.load()
+    movies = load_movies()
+    total_doc_count = len(movies)
+    term_match_doc_count = len(inv_idx.get_documents(term))
+    term_idf = math.log((total_doc_count + 1) / (term_match_doc_count + 1))
+    print(f"{term_idf}")
+    return term_idf
+
+def bm25_idf_command(inv_idx, term):
+    inv_idx.load()
+    BM25_IDF = inv_idx.get_bm25_idf(term)    
+    return BM25_IDF
