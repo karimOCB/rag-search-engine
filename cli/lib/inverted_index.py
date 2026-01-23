@@ -92,7 +92,7 @@ class InvertedIndex:
         self.single_token(term)
         movies = load_movies()
         total_docs = len(movies)
-        term_in_docs = len(self.get_documents(term))
+        term_in_docs = len(self.get_documents(term[0]))
         BM25_IDF = math.log((total_docs - term_in_docs + 0.5) / (term_in_docs + 0.5) + 1)
         return BM25_IDF
 
@@ -103,7 +103,7 @@ class InvertedIndex:
             if len(term) == 0:
                 raise Exception("Given term is empty!")
     
-    def get_bm25_tf(self, doc_id, term, k1, b):
+    def get_bm25_tf(self, doc_id, term, k1=1.5, b=0.75):
         avg_doc_len = self.__get_avg_doc_length()
         len_norm = 1 - b + b * (self.doc_lengths[doc_id] / avg_doc_len)
         raw_tf = self.get_tf(doc_id, term)
@@ -116,4 +116,31 @@ class InvertedIndex:
         total = sum(self.doc_lengths.values())
         avg_doc_len = total / len(self.doc_lengths)
         return avg_doc_len
+
+    def bm25(self, doc_id, term):
+        bm25_idf = self.get_bm25_idf(term)
+        bm25_tf = self.get_bm25_tf(doc_id, term)
+        bm25_score = bm25_idf * bm25_tf
+        return bm25_score
+
+    def bm25_search(self, query, limit=5):
+        tokens = tokenize_text(query)
+        scores = {}
+        for doc_id in self.docmap:
+            for token in tokens:
+                score = self.bm25(doc_id, token)
+                if doc_id not in scores:
+                    scores[doc_id] = 0
+                scores[doc_id] += score
+        scores_processed = dict(sorted(scores.items(), key=lambda item: item[1], reverse=True)[:limit])
+        return scores
+
+
+
+
+
+
+
+
+
 

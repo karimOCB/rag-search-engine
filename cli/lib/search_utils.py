@@ -8,6 +8,7 @@ CACHE_DIR = os.path.join(ROOT_DIR, "cache")
 DEFAULT_SEARCH_LIMIT = 5
 BM25_K1 = 1.5
 BM25_B = 0.75
+BM25_SEARCH_LIMIT = 5
 
 def load_movies():
     with open(data_path, 'r') as f:
