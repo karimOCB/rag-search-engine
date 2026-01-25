@@ -45,7 +45,7 @@ def main() -> None:
                 print(f"{result[i][1]} {result[i][0]}")
         case "tf":
             tf = tf_command(args.doc_id, args.term)
-            print(f"{frequency}")
+            print(f"{tf}")
         case "idf":
             term_idf = idf_command(args.term)
             print(f"Inverse document frequency of '{args.term}': {term_idf:.2f}")

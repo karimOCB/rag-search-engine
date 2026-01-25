@@ -54,7 +54,8 @@ class InvertedIndex:
 
         if doc_id not in self.term_frequencies:
             self.term_frequencies[doc_id] = Counter()
-        self.term_frequencies[doc_id][token] += 1            
+        self.term_frequencies[doc_id].update(tokens) 
+        
             
     def get_documents(self, term):
         if term not in self.index:
@@ -74,7 +75,7 @@ class InvertedIndex:
         tokens = tokenize_text(term)
         single_token(tokens)
         total_doc_count = len(self.docmap)
-        term_doc_count = len(self.index(tokens[0]))
+        term_doc_count = len(self.index[tokens[0]])
         term_idf = math.log((total_doc_count + 1) / (term_doc_count + 1))
         return term_idf
 
@@ -88,7 +89,7 @@ class InvertedIndex:
     
     def get_bm25_tf(self, doc_id, term, k1=BM25_K1, b=BM25_B):
         avg_doc_len = self.__get_avg_doc_length()
-        if avg_doc_len != 0:
+        if avg_doc_len > 0:
             len_norm = 1 - b + b * (self.doc_lengths.get(doc_id, 0) / avg_doc_len)
         else:
             len_norm = 1
