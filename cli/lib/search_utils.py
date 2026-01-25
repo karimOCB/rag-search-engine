@@ -8,7 +8,7 @@ CACHE_DIR = os.path.join(ROOT_DIR, "cache")
 DEFAULT_SEARCH_LIMIT = 5
 BM25_K1 = 1.5
 BM25_B = 0.75
-BM25_SEARCH_LIMIT = 5
+SCORE_PRECISION = 3
 
 def load_movies():
     with open(data_path, 'r') as f:
@@ -20,3 +20,8 @@ def load_stop_words():
         stop_words = f.read()
         stop_words = stop_words.splitlines()
     return stop_words
+
+def single_token(term):
+    if isinstance(term, list):
+        if len(term) != 1:
+            raise ValueError("Term must be a single token")
