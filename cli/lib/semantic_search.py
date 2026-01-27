@@ -100,3 +100,13 @@ def search(query, limit):
     results = semantic_search.search(query, limit)
     for i, movie in enumerate(results, start=1):
         print(f"{i}. {movie['title']} (score: {movie['score']})\n{movie['description']}")
+
+def chunk(text, limit):
+    words = text.split(" ")
+    chunks = [
+        " ".join(words[i : i + limit]) 
+        for i in range(0, len(words), limit)
+    ]
+    print(f"Chunking {len(text)} characters")
+    for i, chunk in enumerate(chunks, start=1):
+        print(f"{i}. {chunk}")
