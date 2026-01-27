@@ -40,6 +40,24 @@ class SemanticSearch:
         else: 
             return self.build_embeddings(documents)
 
+    def search(self, query, limit):
+        if self.embeddings is None:
+            raise ValueError("No embeddings loaded. Call `load_or_create_embeddings` first.")
+        q_embedding = self.generate_embedding(query)
+        cosine_similarities = []
+        for i, embedding in enumerate(self.embeddings):
+            similarity_score = cosine_similarity(q_embedding, embedding)
+            cosine_similarities.append((similarity_score, self.documents[i]))
+        results = sorted(cosine_similarities, key=lambda x: x[0], reverse=True)
+        listofdicts = []
+        for _, result in enumerate(results[:limit]):
+            listofdicts.append({
+                "score": result[0],
+                "title": result[1]["title"],
+                "description": result[1]["description"],
+            })
+        return listofdicts
+
 def verify_model():
     semantic_search = SemanticSearch()
     print(f"Model loaded: {semantic_search.model}")
@@ -58,6 +76,7 @@ def verify_embeddings():
     semantic_search.load_or_create_embeddings(movies)
     print(f"Number of docs: {len(semantic_search.documents)}")
     print(f"Embeddings shape: {semantic_search.embeddings.shape[0]} vectors in {semantic_search.embeddings.shape[1]} dimensions")
+    return semantic_search
 
 def embed_query_text(query):
     semantic_search = SemanticSearch()
@@ -65,3 +84,19 @@ def embed_query_text(query):
     print(f"Query: {query}")
     print(f"First 5 dimensions: {embedding[:5]}")
     print(f"Shape: {embedding.shape}")
+
+def cosine_similarity(vec1, vec2):
+    dot_product = np.dot(vec1, vec2)
+    norm1 = np.linalg.norm(vec1)
+    norm2 = np.linalg.norm(vec2)
+
+    if norm1 == 0 or norm2 == 0:
+        return 0.0
+
+    return dot_product / (norm1 * norm2)
+
+def search(query, limit):
+    semantic_search = verify_embeddings()
+    results = semantic_search.search(query, limit)
+    for i, movie in enumerate(results, start=1):
+        print(f"{i}. {movie['title']} (score: {movie['score']})\n{movie['description']}")
