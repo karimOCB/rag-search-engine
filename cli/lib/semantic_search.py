@@ -24,8 +24,7 @@ class SemanticSearch:
             self.document_map[doc["id"]] = doc
             docs_representations.append(f"{doc['title']}: {doc['description']}")
         self.embeddings = self.model.encode(docs_representations, show_progress_bar = True)
-        if not os.path.exists(CACHE_DIR):
-            os.makedirs(CACHE_DIR, exist_ok=True)
+        os.makedirs(CACHE_DIR, exist_ok=True)
         np.save(self.embeddings_path, self.embeddings)
         return self.embeddings
 
@@ -59,3 +58,10 @@ def verify_embeddings():
     semantic_search.load_or_create_embeddings(movies)
     print(f"Number of docs: {len(semantic_search.documents)}")
     print(f"Embeddings shape: {semantic_search.embeddings.shape[0]} vectors in {semantic_search.embeddings.shape[1]} dimensions")
+
+def embed_query_text(query):
+    semantic_search = SemanticSearch()
+    embedding = semantic_search.generate_embedding(query)
+    print(f"Query: {query}")
+    print(f"First 5 dimensions: {embedding[:5]}")
+    print(f"Shape: {embedding.shape}")
