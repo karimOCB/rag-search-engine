@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import argparse
-from lib.semantic_search import verify_model, embed_text, verify_embeddings, embed_query_text, search, chunk, semantic_chunk, embed_chunks
+from lib.semantic_search import verify_model, embed_text, verify_embeddings, embed_query_text, search, chunking, semantic_chunk, embed_chunks, search_chunks_command
 from lib.search_utils import DEFAULT_SEARCH_LIMIT, DEFAULT_CHUNK_LIMIT
 
 def main():
@@ -21,10 +21,13 @@ def main():
     chunk_parser.add_argument("--overlap", type=int, nargs='?', default=DEFAULT_CHUNK_LIMIT, help="Tunable search overlap")
     semantic_chunk_parser = subparsers.add_parser("semantic_chunk", help="Chunk documents semantically")
     semantic_chunk_parser.add_argument("text", type=str, help="Text to chunk")
-    semantic_chunk_parser.add_argument("--max-chunk-size", type=int, nargs='?', default=4, help="Tunable search limit")
+    semantic_chunk_parser.add_argument("--max-chunk-size", type=int, nargs='?', default=4, help="Tunable max chunk size")
     semantic_chunk_parser.add_argument("--overlap", type=int, nargs='?', default=0, help="Tunable search overlap")
     embed_chunks_parser = subparsers.add_parser("embed_chunks", help="Chunk documents semantically")
-    
+    search_chunked_parser = subparsers.add_parser("search_chunked", help="Search best scores for a query")
+    search_chunked_parser.add_argument("query", type=str, help="Query to search")
+    search_chunked_parser.add_argument("--limit", type=int, nargs='?', default=5, help="Tunable search limit")
+
     args = parser.parse_args()
 
     match args.command:
@@ -39,17 +42,21 @@ def main():
         case "search":
             search(args.query, args.limit)
         case "chunk":
-            chunk(args.text, args.chunk_size, args.overlap)
+            chunking(args.text, args.chunk_size, args.overlap)
         case "semantic_chunk":
             chunks = semantic_chunk(args.text, args.max_chunk_size, args.overlap)
                     
             print(f"Semantically chunking {len(args.text)} characters")
             for i, chunk in enumerate(chunks, start=1):
                 print(f"{i}. {chunk}")
-
         case "embed_chunks":
             chunked_embbedings = embed_chunks()
-            print(f"Generated {len(embeddings)} chunked embeddings")
+            print(f"Generated {len(chunked_embbedings)} chunked embeddings")
+        case "search_chunked":
+            results = search_chunks_command(args.query, args.limit)
+            for i, result in enumerate(results):
+                print(f"\n{i}. {result['title']} (score: {result['score']:.4f})")
+                print(f"   {result['document']}...")
         case _:
             parser.print_help()
 
