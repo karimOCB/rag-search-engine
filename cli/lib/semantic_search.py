@@ -113,15 +113,19 @@ def chunking(text, limit, overlap):
         print(f"{i}. {chunk}")
 
 def semantic_chunk(text, max_chunk_size, overlap):
+    text = text.strip()
+    if text == "": return []
     sentences = re.split(r'(?<=[.!?])\s+', text)
+    sentences = [sentence.strip() for sentence in sentences]
+    if len(sentences) == 1 and not text.endswith((".", "!", "?")):
+        sentences = [text]
     step = max(1, max_chunk_size - overlap)
     chunks = [
-    " ".join(sentences[i : i + max_chunk_size])
+    " ".join(sentences[i : i + max_chunk_size]).strip()
     for i in range(0, len(sentences) - overlap, step)
     ]
     if len(chunks) > 1 and len(sentences) <= max_chunk_size:
         chunks = chunks[:1]
-
     return chunks
 
 class ChunkedSemanticSearch(SemanticSearch):
