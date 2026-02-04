@@ -15,32 +15,64 @@ class HybridSearch:
             self.idx.build()
             self.idx.save()
 
-    def _bm25_search(self, query, limit):
+    def _bm25_search(self, query, limit = DEFAULT_SEARCH_LIMIT):
         self.idx.load()
         return self.idx.bm25_search(query, limit)
 
     def weighted_search(self, query, alpha, limit=5):
-        bm25_result = self._bm25_search(query, limit * 500)
-        semantic_result = self.semantic_search.search_chunks(query, limit * 500)
-        return (bm25_result, semantic_result)
+        bm25_results = self._bm25_search(query, limit * 500)
+        semantic_results = self.semantic_search.search_chunks(query, limit * 500)
+        bm25_scores = [result["score"] for result in bm25_results]
+        semantic_scores = [result["score"] for result in semantic_results]
+        bm_norm_scores = normalize_command(bm25_scores)
+        sem_norm_scores = normalize_command(semantic_scores)
+        ids_to_k_scores = {}
+        ids_to_sem_scores = {}
+        for i, result in enumerate(bm25_results):
+            ids_to_k_scores[result["id"]] = bm_norm_scores[i]
+        for i, result in enumerate(semantic_results):
+            ids_to_sem_scores[result["id"]] = sem_norm_scores[i]
+        all_ids = set(ids_to_k_scores.keys()) | set(ids_to_sem_scores.keys())
+        doc_scores = {}
+        for id in all_ids:
+            doc_scores[id] = {
+                "document": self.semantic_search.document_map[id],
+                "bm25_score": ids_to_k_scores.get(id, 0.0),
+                "semantic_score": ids_to_sem_scores.get(id, 0.0),
+                "hybrid_score": hybrid_score(ids_to_k_scores.get(id, 0.0), ids_to_sem_scores.get(id, 0.0), alpha)
+            }
+        sorted_scores = sorted(doc_scores.items(), key=lambda item: item[1]["hybrid_score"], reverse=True)
+        sorted_scores = [score[1] for score in sorted_scores] 
+        return sorted_scores
 
     def rrf_search(self, query, k, limit=10):
         raise NotImplementedError("RRF hybrid search is not implemented yet.")
 
+
 def normalize_command(scores):
     if not scores:
         return
+    
     minimum = min(scores)
     maximum = max(scores)
+
     if minimum == maximum:
         print(f"{[1.0] * len(scores)}")
+        return [1.0] * len(scores)
+    
     else:
+        normalized_scores = []
         for score in scores:
             normalized_s = (score - minimum) / (maximum - minimum)
-            print(f"* {normalized_s:.4f}")
+            normalized_scores.append(round(normalized_s, 4))
+        return normalized_scores
+
 
 def weighted_search_command(query, alpha = DEFAULT_ALPHA_HYBRID, limit = DEFAULT_SEARCH_LIMIT):
     movies = load_movies()
     hybrid_search = HybridSearch(movies)
-    tuple_result = hybrid_search.weighted_search(query, alpha, limit)
-    print(f"{tuple_result[0]}, {tuple_result[1]}")
+    scores = hybrid_search.weighted_search(query, alpha, limit)
+    return scores[:limit]
+
+def hybrid_score(bm25_score, semantic_score, alpha=0.5):
+    return alpha * bm25_score + (1 - alpha) * semantic_score

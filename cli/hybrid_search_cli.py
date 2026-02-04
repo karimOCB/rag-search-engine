@@ -16,9 +16,13 @@ def main() -> None:
 
     match args.command:
         case "normalize":
-            normalize_command(args.scores)
+            normalized = normalize_command(args.scores)
+            for score in normalized:
+                print(f"* {score:.4f}")
         case "weighted-search":
-            weighted_search_command(args.query, args.alpha, args.limit)
+            scores = weighted_search_command(args.query, args.alpha, args.limit)
+            for i, score in enumerate(scores):
+                print(f"\n{i}. {score['document']['title']}\nHybrid Score: {score['hybrid_score']:.4f})\nBM25: {score['bm25_score']:.4f}, Semantic: {score['semantic_score']:.4f}\n{score['document']['description'][:123]}...")
         case _:
             parser.print_help()
 

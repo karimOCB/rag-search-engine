@@ -102,7 +102,7 @@ class InvertedIndex:
         return tf * idf
 
     def __get_avg_doc_length(self):
-        if not len(self.doc_lengths):
+        if not len(self.doc_lengths) or len(self.doc_lengths) == 0:
             return 0.0
         total = sum(self.doc_lengths.values())
         avg_doc_len = total / len(self.doc_lengths)
@@ -146,7 +146,7 @@ def search_command(query, limit = DEFAULT_SEARCH_LIMIT):
     seen_ids, result = set(), []
 
     for q_token in query_tokens:
-        ids_set = inv_idx.get_documents(q_token)
+        ids_set = idx.get_documents(q_token)
         for doc_id in ids_set:
             if doc_id in seen_ids:
                 continue
@@ -154,7 +154,7 @@ def search_command(query, limit = DEFAULT_SEARCH_LIMIT):
             movie = idx.docmap[doc_id]
             result.append((movie["id"], movie["title"]))
             if len(result) >= limit:
-                return results
+                return result
     return result
 
 def preprocess_text(text):
