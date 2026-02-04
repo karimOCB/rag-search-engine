@@ -13,6 +13,7 @@ SCORE_PRECISION = 3
 DEFAULT_CHUNK_LIMIT = 200
 DEFAULT_CHUNK_OVERLAP = 2
 DEFAULT_ALPHA_HYBRID = 0.5
+RRF_K1 = 60
 
 def load_movies():
     with open(data_path, 'r') as f:

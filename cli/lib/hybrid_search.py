@@ -2,7 +2,7 @@ import os
 
 from .keyword_search import InvertedIndex
 from .semantic_search import ChunkedSemanticSearch
-from .search_utils import DEFAULT_ALPHA_HYBRID, DEFAULT_SEARCH_LIMIT, load_movies
+from .search_utils import DEFAULT_ALPHA_HYBRID, DEFAULT_SEARCH_LIMIT, RRF_K1, load_movies
 
 class HybridSearch:
     def __init__(self, documents):
@@ -46,8 +46,31 @@ class HybridSearch:
         return sorted_scores
 
     def rrf_search(self, query, k, limit=10):
-        raise NotImplementedError("RRF hybrid search is not implemented yet.")
-
+        bm25_results = self._bm25_search(query, limit * 500)
+        semantic_results = self.semantic_search.search_chunks(query, limit * 500)
+        ids_to_k_ranks = {}
+        ids_to_sem_ranks = {}
+        for i, result in enumerate(bm25_results, start=1):
+            ids_to_k_ranks[result["id"]] = i
+        for i, result in enumerate(semantic_results, start=1):
+            ids_to_sem_ranks[result["id"]] = i
+        all_ids = set(ids_to_k_ranks.keys()) | set(ids_to_sem_ranks.keys())
+        doc_rankings = {}        
+        for i, id in enumerate(all_ids):
+            doc_rankings[id] = {
+                "document": self.semantic_search.document_map[id],
+                "bm25_rank": ids_to_k_ranks.get(id),
+                "semantic_rank": ids_to_sem_ranks.get(id),
+                "rrf_score": 0.0
+            }
+            if doc_rankings[id]["bm25_rank"] is not None:
+                doc_rankings[id]["rrf_score"] += rrf_score(doc_rankings[id]["bm25_rank"], k)
+            if doc_rankings[id]["semantic_rank"] is not None:
+                doc_rankings[id]["rrf_score"] += rrf_score(doc_rankings[id]["semantic_rank"], k)
+        sorted_rankings = sorted(doc_rankings.items(), key=lambda item: item[1]["rrf_score"], reverse=True)
+        sorted_rankings = [ranking[1] for ranking in sorted_rankings]
+        return sorted_rankings
+    
 
 def normalize_command(scores):
     if not scores:
@@ -76,3 +99,12 @@ def weighted_search_command(query, alpha = DEFAULT_ALPHA_HYBRID, limit = DEFAULT
 
 def hybrid_score(bm25_score, semantic_score, alpha=0.5):
     return alpha * bm25_score + (1 - alpha) * semantic_score
+
+def rrf_search_command(query, k1 = RRF_K1, limit = DEFAULT_SEARCH_LIMIT):
+    movies = load_movies()
+    hybrid_search = HybridSearch(movies)
+    sorted_rankings = hybrid_search.rrf_search(query, k1, limit)
+    return sorted_rankings[:limit]
+
+def rrf_score(rank, k=60):
+    return 1 / (k + rank)
