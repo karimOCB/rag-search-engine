@@ -3,6 +3,7 @@ import os
 from .keyword_search import InvertedIndex
 from .semantic_search import ChunkedSemanticSearch
 from .search_utils import DEFAULT_ALPHA_HYBRID, DEFAULT_SEARCH_LIMIT, RRF_K1, load_movies
+from lib.query_enhancement import enhance_query
 
 class HybridSearch:
     def __init__(self, documents):
@@ -100,11 +101,25 @@ def weighted_search_command(query, alpha = DEFAULT_ALPHA_HYBRID, limit = DEFAULT
 def hybrid_score(bm25_score, semantic_score, alpha=0.5):
     return alpha * bm25_score + (1 - alpha) * semantic_score
 
-def rrf_search_command(query, k1 = RRF_K1, limit = DEFAULT_SEARCH_LIMIT):
+def rrf_search_command(query, k = RRF_K1, enhance = None, limit = DEFAULT_SEARCH_LIMIT):
     movies = load_movies()
     hybrid_search = HybridSearch(movies)
-    sorted_rankings = hybrid_search.rrf_search(query, k1, limit)
-    return sorted_rankings[:limit]
+    
+    original_query = query 
+    enhanced_query = None
+    if enhance:
+        enhanced_query = enhance_query(query, method=enhance)
+        query = enhanced_query
+
+    results = hybrid_search.rrf_search(query, k, limit)
+    return {
+        "original_query": original_query,
+        "enhanced_query": enhanced_query,
+        "enhance_method": enhance,
+        "query": query,
+        "k": k,
+        "results": results[:limit],
+    }
 
 def rrf_score(rank, k=60):
     return 1 / (k + rank)

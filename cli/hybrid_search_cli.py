@@ -1,6 +1,6 @@
 import argparse
 from lib.hybrid_search import normalize_command, weighted_search_command, rrf_search_command
-from lib.search_utils import DEFAULT_ALPHA_HYBRID, DEFAULT_SEARCH_LIMIT, RRF_K1, get_enhanced_query
+from lib.search_utils import DEFAULT_ALPHA_HYBRID, DEFAULT_SEARCH_LIMIT, RRF_K1
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Hybrid Search CLI")
@@ -15,7 +15,8 @@ def main() -> None:
     rrf_search_parser.add_argument("query", type=str, help="Query to search")
     rrf_search_parser.add_argument("-k", type=float, nargs='?', default=RRF_K1, help="Constant to control the weighting of higher vs lower ranked results")
     rrf_search_parser.add_argument("--limit", type=int, nargs='?', default=DEFAULT_SEARCH_LIMIT, help="Limit search")
-    rrf_search_parser.add_argument("--enhance", type=str, nargs='?', choices=["spell", "rewrite"], help="Query enhancement method")
+    rrf_search_parser.add_argument("--enhance", type=str, nargs='?', choices=["spell", "rewrite", "expand"], help="Query enhancement method")
+    rrf_search_parser.add_argument("--rerank-method", type=str, nargs='?', choices=["individual"], help="Limit search")
 
     args = parser.parse_args()
 
@@ -29,14 +30,19 @@ def main() -> None:
             for i, score in enumerate(scores):
                 print(f"\n{i}. {score['document']['title']}\nHybrid Score: {score['hybrid_score']:.4f})\nBM25: {score['bm25_score']:.4f}, Semantic: {score['semantic_score']:.4f}\n{score['document']['description'][:123]}...")
         case "rrf-search":
-            effective_query = args.query
-            if args.enhance in ["spell", "rewrite"]:
-                effective_query = get_enhanced_query(args.query, args.enhance)
-                print(f"Enhanced query ({args.enhance}): '{args.query}' -> '{effective_query}'\n")
-                
-            sorted_rankings = rrf_search_command(args.query, args.k, args.limit)
+            result = rrf_search_command(args.query, args.k, args.enhance, args.limit)
             
-            for i, ranking in enumerate(sorted_rankings):
+            if result["enhanced_query"]:
+                print(
+                    f"Enhanced query ({result['enhance_method']}): '{result['original_query']}' -> '{result['enhanced_query']}'\n"
+                )
+
+            print(
+                f"Reciprocal Rank Fusion Results for '{result['query']}' (k={result['k']}):"
+            )
+
+
+            for i, ranking in enumerate(result["results"]):
                 print(f"\n{i}. {ranking['document']['title']}\nRRF Score: {ranking['rrf_score']:.4f}\nBM25 Rank: {ranking['bm25_rank']:.4f}, Semantic Rank: {ranking['semantic_rank']:.4f}\n{ranking['document']['description'][:123]}...")
         case _:
             parser.print_help()
@@ -44,3 +50,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+    
