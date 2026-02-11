@@ -112,7 +112,7 @@ def rrf_search_command(query, k = RRF_K1, enhance = None, rerank_method = None, 
         enhanced_query = enhance_query(query, method=enhance)
         query = enhanced_query
     
-    new_limit = limit if rerank_method else limit
+    new_limit = limit * 5 if rerank_method else limit
 
     results = hybrid_search.rrf_search(query, k, new_limit)
 

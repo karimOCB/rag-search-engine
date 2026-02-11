@@ -1,4 +1,4 @@
-import os, time
+import os, time, json
 
 from dotenv import load_dotenv
 from google import genai
@@ -30,13 +30,43 @@ def individual_rerank(results, query):
 
         response = client.models.generate_content(model=model, contents=prompt)
         corrected = (response.text or "").strip().strip('"')
-        new_results[i]["llm_score"] = int(corrected)
+        new_results[i]["llm_rank"] = int(corrected)
     
-    return sorted(new_results, key=lambda item: item["llm_score"], reverse=True)   
+    return sorted(new_results, key=lambda item: item["llm_rank"], reverse=True)   
+
+
+def batch_rerank(results, query):
+    documents = [result["document"] for result in results]
+    documents_map = {}
+    for result in results:
+        documents_map[result["document"]["id"]] = result
+    prompt = f"""Rank these movies by relevance to the search query.
+
+            Query: "{query}"
+
+            Movies: {documents}
+
+            Return ONLY the IDs in order of relevance (best match first). Return a valid JSON list, nothing else. For example:
+
+            [75, 12, 34, 2, 1]
+            """
+    response = client.models.generate_content(model=model, contents=prompt)
+    corrected = (response.text or "").strip().strip('"')
+    data = json.loads(corrected)
+    print(f"\n\n {data}")
+    reranked_results = []
+    for i, id in enumerate(data):
+        documents_map[id]["llm_rank"] = i + 1
+        reranked_results.append(documents_map[id])
+    
+    return reranked_results
+
 
 def rerank_result(results, query, method):
     match method:
         case "individual":
             return individual_rerank(results, query)
+        case "batch":
+            return batch_rerank(results, query)
         case _:
             return query

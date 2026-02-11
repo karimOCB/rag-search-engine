@@ -16,7 +16,7 @@ def main() -> None:
     rrf_search_parser.add_argument("-k", type=float, nargs='?', default=RRF_K1, help="Constant to control the weighting of higher vs lower ranked results")
     rrf_search_parser.add_argument("--limit", type=int, nargs='?', default=DEFAULT_SEARCH_LIMIT, help="Limit search")
     rrf_search_parser.add_argument("--enhance", type=str, nargs='?', choices=["spell", "rewrite", "expand"], help="Query enhancement method")
-    rrf_search_parser.add_argument("--rerank-method", type=str, nargs='?', choices=["individual"], help="Limit search")
+    rrf_search_parser.add_argument("--rerank-method", type=str, nargs='?', choices=["individual", "batch"], help="Limit search")
 
     args = parser.parse_args()
 
@@ -46,7 +46,7 @@ def main() -> None:
             )
             
             for i, ranking in enumerate(result["results"]):
-                print(f"\n{i}. {ranking['document']['title']}\nRerank Score: {ranking['llm_score']:.4f}\nRRF Score: {ranking['rrf_score']:.4f}\nBM25 Rank: {ranking['bm25_rank']:.4f}, Semantic Rank: {ranking['semantic_rank']:.4f}\n{ranking['document']['description'][:123]}...")
+                print(f"\n{i}. {ranking['document']['title']}\nRerank: {ranking['llm_rank']:.4f}\nRRF Score: {ranking['rrf_score']:.4f}\nBM25 Rank: {ranking['bm25_rank']:.4f}, Semantic Rank: {ranking['semantic_rank']:.4f}\n{ranking['document']['description'][:123]}...")
         case _:
             parser.print_help()
 
