@@ -30,20 +30,23 @@ def main() -> None:
             for i, score in enumerate(scores):
                 print(f"\n{i}. {score['document']['title']}\nHybrid Score: {score['hybrid_score']:.4f})\nBM25: {score['bm25_score']:.4f}, Semantic: {score['semantic_score']:.4f}\n{score['document']['description'][:123]}...")
         case "rrf-search":
-            result = rrf_search_command(args.query, args.k, args.enhance, args.limit)
+            result = rrf_search_command(args.query, args.k, args.enhance, args.rerank_method, args.limit)
             
             if result["enhanced_query"]:
                 print(
                     f"Enhanced query ({result['enhance_method']}): '{result['original_query']}' -> '{result['enhanced_query']}'\n"
                 )
+            if args.rerank_method:
+                print(
+                    f"Reranking top {args.limit} results using {result['rerank_method']} method.'\n"
+                )
 
             print(
                 f"Reciprocal Rank Fusion Results for '{result['query']}' (k={result['k']}):"
             )
-
-
+            
             for i, ranking in enumerate(result["results"]):
-                print(f"\n{i}. {ranking['document']['title']}\nRRF Score: {ranking['rrf_score']:.4f}\nBM25 Rank: {ranking['bm25_rank']:.4f}, Semantic Rank: {ranking['semantic_rank']:.4f}\n{ranking['document']['description'][:123]}...")
+                print(f"\n{i}. {ranking['document']['title']}\nRerank Score: {ranking['llm_score']:.4f}\nRRF Score: {ranking['rrf_score']:.4f}\nBM25 Rank: {ranking['bm25_rank']:.4f}, Semantic Rank: {ranking['semantic_rank']:.4f}\n{ranking['document']['description'][:123]}...")
         case _:
             parser.print_help()
 

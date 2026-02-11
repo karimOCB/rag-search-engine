@@ -1,5 +1,4 @@
 import os
-from typing import Optional
 
 from dotenv import load_dotenv
 from google import genai
@@ -10,7 +9,7 @@ client = genai.Client(api_key=api_key)
 model = "gemini-2.5-flash"
 
 
-def spell_correct(query: str) -> str:
+def spell_correct(query):
     prompt = f"""Fix any spelling errors in this movie search query.
 
 Only correct obvious typos. Don't change correctly spelled words.
@@ -25,7 +24,7 @@ Corrected:"""
     return corrected if corrected else query
 
 
-def rewrite_query(query: str) -> str:
+def rewrite_query(query):
     prompt = f"""Rewrite this movie search query to be more specific and searchable.
 
 Original: "{query}"
@@ -50,7 +49,7 @@ Rewritten query:"""
     return rewritten if rewritten else query
 
 
-def expand_query(query: str) -> str:
+def expand_query(query):
     prompt = f"""Expand this movie search query with related terms.
 
 Add synonyms and related concepts that might appear in movie descriptions.

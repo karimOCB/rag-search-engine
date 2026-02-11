@@ -4,6 +4,7 @@ from .keyword_search import InvertedIndex
 from .semantic_search import ChunkedSemanticSearch
 from .search_utils import DEFAULT_ALPHA_HYBRID, DEFAULT_SEARCH_LIMIT, RRF_K1, load_movies
 from lib.query_enhancement import enhance_query
+from lib.rerank import rerank_result
 
 class HybridSearch:
     def __init__(self, documents):
@@ -101,7 +102,7 @@ def weighted_search_command(query, alpha = DEFAULT_ALPHA_HYBRID, limit = DEFAULT
 def hybrid_score(bm25_score, semantic_score, alpha=0.5):
     return alpha * bm25_score + (1 - alpha) * semantic_score
 
-def rrf_search_command(query, k = RRF_K1, enhance = None, limit = DEFAULT_SEARCH_LIMIT):
+def rrf_search_command(query, k = RRF_K1, enhance = None, rerank_method = None, limit = DEFAULT_SEARCH_LIMIT):
     movies = load_movies()
     hybrid_search = HybridSearch(movies)
     
@@ -110,15 +111,21 @@ def rrf_search_command(query, k = RRF_K1, enhance = None, limit = DEFAULT_SEARCH
     if enhance:
         enhanced_query = enhance_query(query, method=enhance)
         query = enhanced_query
+    
+    new_limit = limit if rerank_method else limit
 
-    results = hybrid_search.rrf_search(query, k, limit)
+    results = hybrid_search.rrf_search(query, k, new_limit)
+
+    if rerank_method:
+        results = rerank_result(results[:limit], query, rerank_method)
     return {
         "original_query": original_query,
         "enhanced_query": enhanced_query,
         "enhance_method": enhance,
+        "rerank_method": rerank_method,
         "query": query,
         "k": k,
-        "results": results[:limit],
+        "results": results,
     }
 
 def rrf_score(rank, k=60):
