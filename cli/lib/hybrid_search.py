@@ -117,7 +117,7 @@ def rrf_search_command(query, k = RRF_K1, enhance = None, rerank_method = None, 
     results = hybrid_search.rrf_search(query, k, new_limit)
 
     if rerank_method:
-        results = rerank_result(results, query, rerank_method)[:limit]
+        results = rerank_result(results, query, rerank_method)
     return {
         "original_query": original_query,
         "enhanced_query": enhanced_query,
@@ -125,7 +125,7 @@ def rrf_search_command(query, k = RRF_K1, enhance = None, rerank_method = None, 
         "rerank_method": rerank_method,
         "query": query,
         "k": k,
-        "results": results,
+        "results": results[:limit],
     }
 
 def rrf_score(rank, k=60):

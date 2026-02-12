@@ -2,6 +2,7 @@ import json, os
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 data_path = os.path.join(ROOT_DIR, "data", "movies.json")
+golden_data_path = os.path.join(ROOT_DIR, "data", "golden_dataset.json")
 stop_words_path = os.path.join(ROOT_DIR, "data", "stopwords.txt")
 CACHE_DIR = os.path.join(ROOT_DIR, "cache")
 
@@ -19,6 +20,11 @@ def load_movies():
     with open(data_path, 'r') as f:
         data = json.load(f)
     return data["movies"]
+
+def load_golden_data():
+    with open(golden_data_path, 'r') as f:
+        golden_data = json.load(f)
+    return golden_data["test_cases"]
 
 def load_stop_words():
     with open(stop_words_path, 'r') as f:

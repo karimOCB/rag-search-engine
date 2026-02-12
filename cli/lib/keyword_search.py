@@ -83,6 +83,8 @@ class InvertedIndex:
         tokens = tokenize_text(term)        
         single_token(tokens)
         total_docs = len(self.docmap)
+        if tokens[0] not in self.index:
+            return 0
         term_in_docs = len(self.index[tokens[0]])
         BM25_IDF = math.log((total_docs - term_in_docs + 0.5) / (term_in_docs + 0.5) + 1)
         return BM25_IDF
