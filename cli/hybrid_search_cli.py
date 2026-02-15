@@ -1,6 +1,7 @@
 import argparse
 from lib.hybrid_search import normalize_command, weighted_search_command, rrf_search_command
 from lib.search_utils import DEFAULT_ALPHA_HYBRID, DEFAULT_SEARCH_LIMIT, RRF_K1
+from lib.evaluation import llm_evaluation
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Hybrid Search CLI")
@@ -16,7 +17,8 @@ def main() -> None:
     rrf_search_parser.add_argument("-k", type=float, nargs='?', default=RRF_K1, help="Constant to control the weighting of higher vs lower ranked results")
     rrf_search_parser.add_argument("--limit", type=int, nargs='?', default=DEFAULT_SEARCH_LIMIT, help="Limit search")
     rrf_search_parser.add_argument("--enhance", type=str, nargs='?', choices=["spell", "rewrite", "expand"], help="Query enhancement method")
-    rrf_search_parser.add_argument("--rerank-method", type=str, nargs='?', choices=["individual", "batch", "cross_encoder"], help="Limit search")
+    rrf_search_parser.add_argument("--rerank-method", type=str, nargs='?', choices=["individual", "batch", "cross_encoder"], help="Re-rank method")
+    rrf_search_parser.add_argument("--evaluate", action="store_true", help="Enable LLM-based evaluation of search results")
 
     args = parser.parse_args()
 
@@ -46,7 +48,14 @@ def main() -> None:
             )
             
             for i, ranking in enumerate(result["results"]):
-                print(f"\n{i}. {ranking['document']['title']}\nRerank: {ranking['llm_rank']:.4f}\nRRF Score: {ranking['rrf_score']:.4f}\nBM25 Rank: {ranking['bm25_rank']:.4f}, Semantic Rank: {ranking['semantic_rank']:.4f}\n{ranking['document']['description'][:123]}...")
+                print(f"\n{i}. {ranking['document']['title']}\n{ranking['document']['description'][:123]}...")
+                if args.rerank_method:
+                    print(f"\nRerank: {ranking['llm_rank']:.4f}")
+                print(f"RRF Score: {ranking['rrf_score']:.4f}\nBM25 Rank: {ranking['bm25_rank']:.4f}, Semantic Rank: {ranking['semantic_rank']:.4f}\n")
+            if args.evaluate:
+                llm_valuation = llm_evaluation(args.query, result["results"])
+                for llm_v in llm_valuation:
+                    print(llm_v)
         case _:
             parser.print_help()
 

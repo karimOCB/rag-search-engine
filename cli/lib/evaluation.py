@@ -1,9 +1,18 @@
+import os, json
+
+from dotenv import load_dotenv
+from google import genai
 from .hybrid_search import HybridSearch
 from .search_utils import (
     load_golden_data,
     load_movies,
 )
 from .semantic_search import SemanticSearch
+
+load_dotenv()
+api_key = os.getenv("gemini_api_key")
+client = genai.Client(api_key=api_key)
+model = "gemini-2.5-flash"
 
 
 def precision_at_k(retrieved_docs, relevant_docs, k = 5):
@@ -63,3 +72,35 @@ def evaluate_command(limit = 5):
         "limit": limit,
         "results": results_by_query,
     }
+
+def llm_evaluation(query, results):
+    formatted_ranking = []
+    for i, ranking in enumerate(results):
+        formatted_ranking.append(f'{i}. Title: {ranking['document']['title']}  Description": {ranking['document']['description']}')
+    prompt = f"""Rate how relevant each result is to this query on a 0-3 scale:
+
+            Query: "{query}"
+
+            Results:
+            {chr(10).join(formatted_ranking)}
+            Scale:
+            - 3: Highly relevant
+            - 2: Relevant
+            - 1: Marginally relevant
+            - 0: Not relevant
+
+            Do NOT give any numbers out than 0, 1, 2, or 3.
+
+            Return ONLY the scores in the same order you were given the documents. Return a valid JSON list, nothing else. For example:
+
+            [2, 0, 3, 2, 0, 1]"""
+
+    response = client.models.generate_content(model=model, contents=prompt)
+    corrected = (response.text or "").strip().strip('"')
+    data = json.loads(corrected)
+    print(data)
+    print(results)
+    llm_valuation = []
+    for i, result in enumerate(results, start=1):
+        llm_valuation.append(f"{i}. {result["document"]["title"]}: {data[i-1]}/3")
+    return llm_valuation
