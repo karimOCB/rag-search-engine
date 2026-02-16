@@ -1,6 +1,6 @@
 import argparse
 
-from lib.augmented_generation import rag_command, summarize_command, citations_command
+from lib.augmented_generation import rag_command, summarize_command, citations_command, question_command
 from lib.search_utils import DEFAULT_SEARCH_LIMIT
 
 def main():
@@ -15,7 +15,10 @@ def main():
     citations_parser = subparsers.add_parser("citations", help="Reference sources")
     citations_parser.add_argument("query", type=str, help="Search query for citations")
     citations_parser.add_argument("--limit", type=int, nargs='?', default=DEFAULT_SEARCH_LIMIT, help="Limit search")
-
+    question_parser = subparsers.add_parser("question", help="Ask the llm")
+    question_parser.add_argument("question", type=str, help="Question to ask the llm")
+    question_parser.add_argument("--limit", type=int, nargs='?', default=DEFAULT_SEARCH_LIMIT, help="Limit search")
+    
     args = parser.parse_args()
 
     match args.command:
@@ -43,6 +46,14 @@ def main():
                 print(title)
             print("\nLLM Answer:")
             print(generated_answer_citations)    
+        case "question":
+            question, limit = args.question, args.limit
+            titles, generated_question_answer = question_command(question, limit)
+            print("Search Results:")
+            for title in titles: 
+                print(title)
+            print("\nAnswer:")
+            print(generated_question_answer)
         case _:
             parser.print_help()
 

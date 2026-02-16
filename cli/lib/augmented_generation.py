@@ -84,6 +84,33 @@ def citations_command(query, limit):
     return (titles, corrected)
 
 
+def question_command(question, limit):
+    response = rrf_search_command(question, limit = limit)
+    results = response["results"]
+
+    titles, formatted_ranking = formatter_for_llm(results)
+    prompt = f"""Answer the user's question based on the provided movies that are available on Hoopla.
+
+            This should be tailored to Hoopla users. Hoopla is a movie streaming service.
+
+            Question: {question}
+
+            Documents:
+            {formatted_ranking}
+
+            Instructions:
+            - Answer questions directly and concisely
+            - Be casual and conversational
+            - Don't be cringe or hype-y
+            - Talk like a normal person would in a chat conversation
+
+            Answer:"""
+
+    response = client.models.generate_content(model=model, contents=prompt)
+    corrected = (response.text or "").strip().strip('"')
+    return (titles, corrected)
+
+
 def formatter_for_llm(results):
     formatted_ranking = []
     titles = []
