@@ -14,11 +14,8 @@ def rag_command(query):
     response = rrf_search_command(query, limit=5)
     results = response["results"]
 
-    formatted_ranking = []
-    titles = []
-    for i, ranking in enumerate(results):
-        formatted_ranking.append(f'{i}. Title: {ranking['document']['title']}  Description": {ranking['document']['description']}')
-        titles.append(f'  - Title: {ranking['document']['title']}')
+    titles, formatted_ranking = formatter_for_llm(results)
+
     prompt = f"""Answer the question or provide information based on the provided documents. This should be tailored to Hoopla users. Hoopla is a movie streaming service.
 
             Query: {query}
@@ -32,3 +29,33 @@ def rag_command(query):
     corrected = (response.text or "").strip().strip('"')
     
     return (titles, corrected)
+
+def summarize_command(query):
+    response = rrf_search_command(query, limit=5)
+    results = response["results"]
+
+    titles, formatted_ranking = formatter_for_llm(results)
+
+    prompt = f"""
+            Provide information useful to this query by synthesizing information from multiple search results in detail.
+            The goal is to provide comprehensive information so that users know what their options are.
+            Your response should be information-dense and concise, with several key pieces of information about the genre, plot, etc. of each movie.
+            This should be tailored to Hoopla users. Hoopla is a movie streaming service.
+            Query: {query}
+            Search Results:
+            {formatted_ranking}
+            Provide a comprehensive 3–4 sentence answer that combines information from multiple sources:
+            """
+
+    response = client.models.generate_content(model=model, contents=prompt)
+    corrected = (response.text or "").strip().strip('"')
+    return (titles, corrected)
+
+def formatter_for_llm(results):
+    formatted_ranking = []
+    titles = []
+    for i, ranking in enumerate(results):
+        formatted_ranking.append(f'{i}. Title: {ranking['document']['title']}  Description": {ranking['document']['description']}')
+        titles.append(f'  - Title: {ranking['document']['title']}')
+
+    return (titles, formatted_ranking)
