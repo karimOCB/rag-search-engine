@@ -97,10 +97,14 @@ def llm_evaluation(query, results):
 
     response = client.models.generate_content(model=model, contents=prompt)
     corrected = (response.text or "").strip().strip('"')
-    data = json.loads(corrected)
-    print(data)
-    print(results)
+    scores = json.loads(corrected)
+
     llm_valuation = []
     for i, result in enumerate(results, start=1):
-        llm_valuation.append(f"{i}. {result["document"]["title"]}: {data[i-1]}/3")
-    return llm_valuation
+        llm_valuation.append(f"{i}. {result["document"]["title"]}: {scores[i-1]}/3")
+    if len(scores) == len(results):
+        return llm_valuation
+
+    raise ValueError(
+        f"LLM response parsing error. Expected {len(results)} scores, got {len(scores)}. Response: {scores}"
+    )
