@@ -1,9 +1,6 @@
-import numpy as np
-import os
-import re
-import json
+import os, re, json
 from sentence_transformers import SentenceTransformer
-from lib.search_utils import CACHE_DIR, load_movies, SCORE_PRECISION
+from lib.search_utils import CACHE_DIR, load_movies, SCORE_PRECISION, cosine_similarity
 
 class SemanticSearch:
     def __init__(self, model_name = "all-MiniLM-L6-v2"):
@@ -85,16 +82,6 @@ def embed_query_text(query):
     print(f"Query: {query}")
     print(f"First 5 dimensions: {embedding[:5]}")
     print(f"Shape: {embedding.shape}")
-
-def cosine_similarity(vec1, vec2):
-    dot_product = np.dot(vec1, vec2)
-    norm1 = np.linalg.norm(vec1)
-    norm2 = np.linalg.norm(vec2)
-
-    if norm1 == 0 or norm2 == 0:
-        return 0.0
-
-    return dot_product / (norm1 * norm2)
 
 def search(query, limit):
     semantic_search = verify_embeddings()

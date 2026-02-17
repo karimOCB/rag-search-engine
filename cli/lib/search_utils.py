@@ -1,4 +1,5 @@
 import json, os
+import numpy as np
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 data_path = os.path.join(ROOT_DIR, "data", "movies.json")
@@ -36,3 +37,14 @@ def single_token(term):
     if isinstance(term, list):
         if len(term) != 1:
             raise ValueError("Term must be a single token")
+
+
+def cosine_similarity(vec1, vec2):
+    dot_product = np.dot(vec1, vec2)
+    norm1 = np.linalg.norm(vec1)
+    norm2 = np.linalg.norm(vec2)
+
+    if norm1 == 0 or norm2 == 0:
+        return 0.0
+
+    return dot_product / (norm1 * norm2)
