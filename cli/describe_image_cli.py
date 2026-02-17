@@ -26,7 +26,7 @@ def main():
             - Synthesize visual and textual information
             - Focus on movie-specific details (actors, scenes, style, etc.)
             - Return only the rewritten query, without any additional commentary
-            """ 
+            """
 
     parts = [
         system_prompt,
